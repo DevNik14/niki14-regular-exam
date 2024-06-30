@@ -1,4 +1,4 @@
-name: build and test
+name: build, test and deploy
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build-and-unit-test:
 
     runs-on: ubuntu-latest
 
@@ -29,7 +29,7 @@ jobs:
   ui-tests:
 
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: build-and-unit-test
 
     steps:
     - name: checkout the repo
@@ -47,3 +47,16 @@ jobs:
       run: npm run start &
     - name: start ui tests
       run: npm run test:ui
+
+  deploy:
+
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: ui-tests
+
+    steps:
+      - name: Deploy to production
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.MY_RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.MY_RENDER_API_KEY }}
